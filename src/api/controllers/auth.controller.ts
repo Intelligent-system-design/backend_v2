@@ -6,11 +6,6 @@ import prisma from '../../utils/prisma';
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, username, password } = req.body;
-    
-    if (!password || (!email && !username)) {
-      res.status(400).json({ error: 'Missing credentials' });
-      return;
-    }
 
     const user = await prisma.user.findFirst({
       where: {
@@ -22,13 +17,13 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     });
 
     if (!user) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Thông tin đăng nhập không hợp lệ' });
       return;
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      res.status(401).json({ error: 'Invalid credentials' });
+      res.status(401).json({ error: 'Thông tin đăng nhập không hợp lệ' });
       return;
     }
 
@@ -51,18 +46,13 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
   }
 };
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, username, password } = req.body;
-
-    if (!email || !username || !password) {
-      res.status(400).json({ error: 'Missing required fields' });
-      return;
-    }
 
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -71,7 +61,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     });
 
     if (existingUser) {
-      res.status(409).json({ error: 'Username or email already exists' });
+      res.status(409).json({ error: 'Tên người dùng hoặc email đã tồn tại' });
       return;
     }
 
@@ -105,6 +95,6 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     });
   } catch (error) {
     console.error('Register error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
   }
 };

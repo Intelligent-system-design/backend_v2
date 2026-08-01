@@ -7,7 +7,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
     const userId = req.user?.userId;
 
     if (!userId) {
-      res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Không có quyền truy cập' });
       return;
     }
 
@@ -25,7 +25,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
     });
 
     if (!user) {
-      res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'Không tìm thấy người dùng' });
       return;
     }
 
@@ -45,7 +45,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
     });
   } catch (error) {
     console.error('Get profile error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
   }
 };
 
@@ -93,6 +93,6 @@ export const getLeaderboard = async (req: Request, res: Response): Promise<void>
     });
   } catch (error) {
     console.error('Get leaderboard error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Lỗi máy chủ nội bộ' });
   }
 };

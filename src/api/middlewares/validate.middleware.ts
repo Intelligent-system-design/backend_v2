@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodTypeAny, ZodError } from 'zod';
+import { ZodError, ZodTypeAny } from 'zod';
 
 export const validate = (schema: ZodTypeAny) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -13,9 +13,9 @@ export const validate = (schema: ZodTypeAny) => {
     } catch (error) {
       if (error instanceof ZodError) {
         // Trả về danh sách lỗi chi tiết theo từng trường để Frontend dễ hiển thị
-        const errors = error.errors.map(err => ({
-          field: err.path.slice(1).join('.'), // Bỏ prefix 'body'/'query'/'params'
-          message: err.message
+        const errors = error.issues.map(issue => ({
+          field: issue.path.slice(1).join('.'), // Bỏ prefix 'body'/'query'/'params'
+          message: issue.message
         }));
         // Lấy message đầu tiên làm tóm tắt lỗi chính
         const summary = errors.map(e => e.message).join(', ');

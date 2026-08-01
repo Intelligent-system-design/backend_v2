@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "predev": "npx prisma generate && npx prisma db push --accept-data-loss",
     "dev": "nodemon src/server.ts",
     "start": "ts-node src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"

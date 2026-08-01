@@ -8,6 +8,14 @@ export interface AuthRequest extends Request {
   };
 }
 
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('Biến môi trường JWT_SECRET chưa được cấu hình');
+  }
+  return secret;
+};
+
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -17,12 +25,18 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     return;
   }
 
-  jwt.verify(token, process.env.JWT_SECRET || 'secret', (err, user) => {
-    if (err) {
-      res.status(403).json({ error: 'Bị từ chối: Token không hợp lệ' });
-      return;
-    }
-    req.user = user as { userId: string; role: string };
-    next();
-  });
+  try {
+    const secret = getJwtSecret();
+    jwt.verify(token, secret, (err, user) => {
+      if (err) {
+        res.status(403).json({ error: 'Bị từ chối: Token không hợp lệ hoặc đã hết hạn' });
+        return;
+      }
+      req.user = user as { userId: string; role: string };
+      next();
+    });
+  } catch {
+    res.status(500).json({ error: 'Lỗi cấu hình máy chủ' });
+  }
 };
+

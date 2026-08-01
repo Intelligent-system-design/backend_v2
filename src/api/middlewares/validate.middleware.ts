@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AnyZodObject, ZodError } from 'zod';
+import { ZodTypeAny, ZodError } from 'zod';
 
-export const validate = (schema: AnyZodObject) => {
+export const validate = (schema: ZodTypeAny) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       await schema.parseAsync({
@@ -12,11 +12,20 @@ export const validate = (schema: AnyZodObject) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessage = error.errors.map(err => err.message).join(', ');
-        res.status(400).json({ error: errorMessage });
+        // Trả về danh sách lỗi chi tiết theo từng trường để Frontend dễ hiển thị
+        const errors = error.errors.map(err => ({
+          field: err.path.slice(1).join('.'), // Bỏ prefix 'body'/'query'/'params'
+          message: err.message
+        }));
+        // Lấy message đầu tiên làm tóm tắt lỗi chính
+        const summary = errors.map(e => e.message).join(', ');
+        res.status(400).json({
+          error: summary,
+          errors
+        });
         return;
       }
-      res.status(400).json({ error: 'Dữ liệu không hợp lệ' });
+      res.status(400).json({ error: 'Dữ liệu không hợp lệ', errors: [] });
     }
   };
 };

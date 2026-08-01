@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const ai_controller_1 = require("../controllers/ai.controller");
+const auth_middleware_1 = require("../middlewares/auth.middleware");
+const router = (0, express_1.Router)();
+router.post('/move', auth_middleware_1.authenticateToken, ai_controller_1.getAIMove);
+router.post('/hint', auth_middleware_1.authenticateToken, ai_controller_1.getAIHint);
+router.post('/validate', auth_middleware_1.authenticateToken, ai_controller_1.validateAIMove);
+exports.default = router;

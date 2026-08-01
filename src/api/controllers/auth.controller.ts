@@ -1,7 +1,5 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jwt-simple'; // wait, we installed jsonwebtoken, I should use jsonwebtoken
-// Let's use jsonwebtoken
 import jwtToken from 'jsonwebtoken';
 import prisma from '../../utils/prisma';
 

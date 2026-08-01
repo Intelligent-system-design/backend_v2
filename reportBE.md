@@ -16,18 +16,39 @@ Backend được xây dựng theo chuẩn công nghiệp, đáp ứng hoàn toà
 - Tự động sinh kiểu dữ liệu (Typings) cho TypeScript, loại bỏ hoàn toàn các lỗi sai sót trường dữ liệu.
 
 ### 2.2 REST API Core
-- **Authentication**: `POST /api/v1/auth/login` và `register`. Cấp phát JWT Token.
-- **User Management**: `GET /api/v1/users/profile` và `/leaderboard`. Truy xuất bảng xếp hạng động dựa trên điểm ELO.
+Danh sách toàn bộ các REST API endpoints:
+- **System**:
+  - `GET /api/health`: Kiểm tra trạng thái máy chủ.
+- **Authentication**: 
+  - `POST /api/v1/auth/login`: Đăng nhập, cấp phát JWT Token.
+  - `POST /api/v1/auth/register`: Đăng ký tài khoản mới.
+- **User Management**: 
+  - `GET /api/v1/users/profile`: Lấy thông tin cá nhân (yêu cầu JWT).
+  - `GET /api/v1/users/leaderboard`: Truy xuất bảng xếp hạng động dựa trên điểm ELO.
 - **AI Integration**:
-  - `POST /api/v1/engine/move`: Xử lý đầu vào FEN, gọi service AI.
-  - `POST /api/v1/engine/hint`: Phân tích thế cờ hiện tại.
-  - `POST /api/v1/engine/validate`: Chống gian lận (Anti-cheat logic).
+  - `POST /api/v1/engine/move`: Xử lý đầu vào FEN, gọi service AI để lấy nước đi tiếp theo.
+  - `POST /api/v1/engine/hint`: Phân tích thế cờ hiện tại, gợi ý nước đi.
+  - `POST /api/v1/engine/validate`: Chống gian lận (Anti-cheat logic), kiểm tra tính hợp lệ của nước đi.
 
 ### 2.3 Real-time Engine (Socket.io)
-- **Matchmaking (Hệ thống tìm trận)**: Thuật toán hàng đợi đơn giản. Gom nhóm 2 người chơi vào chung một Room ẩn ngay khi đủ điều kiện. Server tự động khởi tạo Record trận đấu.
-- **Game Logic**:
-  - Đồng bộ hóa sự kiện `make_move` trong tích tắc. Lưu lịch sử nước cờ (`Move Str` & `FEN`) vào Database phục vụ cho việc Replay sau này.
-  - Sự kiện `resign` (Nhận thua): Ngay lập tức kết thúc trận, tính toán lại **ELO** (Winner +30, Loser -30) và cập nhật số trận thắng/thua trực tiếp vào MySQL.
+Chi tiết các sự kiện (events) giao tiếp qua Socket.io:
+- **Matchmaking & Room Events (Hệ thống tìm trận)**: 
+  - *Client Emits (Gửi từ Client):*
+    - `join_room(roomId)`: Tham gia vào một phòng.
+    - `leave_room(roomId)`: Rời khỏi một phòng.
+    - `find_match`: Đăng ký tìm trận, đưa vào hàng đợi đơn giản.
+    - `cancel_find_match`: Hủy tìm trận.
+  - *Server Emits (Gửi từ Server):*
+    - `user_joined`, `user_left`: Thông báo người chơi vào/ra phòng.
+    - `match_found`: Tự động gom nhóm 2 người chơi, khởi tạo Record trận đấu và trả về `matchId`, `FEN`.
+- **Game Logic Events (Xử lý trận đấu)**:
+  - *Client Emits (Gửi từ Client):*
+    - `make_move`: Đồng bộ nước cờ (gồm `matchId`, `fen`, `moveStr`, `timeCost`). Lưu lịch sử vào Database phục vụ Replay sau này.
+    - `resign` (Nhận thua): Ngay lập tức kết thúc trận, tính toán lại **ELO** (Winner +30, Loser -30) và cập nhật số trận thắng/thua trực tiếp vào MySQL.
+  - *Server Emits (Gửi từ Server):*
+    - `move_made`: Đồng bộ hóa sự kiện đi cờ trong tích tắc cho đối thủ.
+    - `match_ended`: Thông báo kết thúc trận đấu.
+    - `error`: Báo lỗi nếu trận không hợp lệ.
 
 ### 2.4 AI Engine Service (Mock)
 - Service `ai.service.ts` được thiết kế theo mẫu Decorator, hiện tại giả lập độ trễ thuật toán Minimax (1.5s) và trả về dữ liệu mẫu. 

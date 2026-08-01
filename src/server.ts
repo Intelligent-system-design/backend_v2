@@ -38,7 +38,8 @@ app.get('/api/health', (req: Request, res: Response) => {
 
 
 
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+const HOST = process.env.HOST || '127.0.0.1';
+const PORT = Number(process.env.PORT || 3579);
+server.listen(PORT, HOST, () => {
+  console.log(`Server is running on http://${HOST}:${PORT}`);
 });
